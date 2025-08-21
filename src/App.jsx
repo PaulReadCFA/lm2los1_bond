@@ -9,6 +9,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Cell,
+  LabelList
 } from "recharts";
 
 /**
@@ -18,7 +20,7 @@ import {
  * 3) Dividend Discount Models (no growth, Gordon, two-stage)
  */
 
-const CHART_MARGINS = { top: 8, right: 12, left: 72, bottom: 36 };
+const CHART_MARGINS = { top: 50, right: 12, left: 72, bottom: 36 };
 
 // ---- CFA palette & helpers ----
 const CFA = { primary: "#4476FF", dark: "#06005A" };
@@ -155,19 +157,42 @@ function IntField({ value, onChange }) {
 /*                                Calculations                                */
 /* -------------------------------------------------------------------------- */
 
-// Bond cash flows
+// Bond cash flows - Include initial purchase but control labeling
 function buildBondCashFlows({ face = 100, years = 5, couponRate = 0.086, ytm = 0.065, freq = 2 }) {
   const n = years * freq;
   const c = (couponRate * face) / freq;
   const r = ytm / freq;
   const flows = [];
-  for (let t = 1; t <= n; t++) {
-    const cf = t === n ? c + face : c;
-    flows.push({ period: t / freq, coupon: c, other: t === n ? face : 0, total: cf });
-  }
+  
+  // Initial outflow (bond purchase) - with null total to prevent labeling
   const pvCoupons = Array.from({ length: n }, (_, k) => c / Math.pow(1 + r, k + 1)).reduce((a, b) => a + b, 0);
   const pvRedemption = face / Math.pow(1 + r, n);
   const price = pvCoupons + pvRedemption;
+  
+  flows.push({ 
+    period: 0, 
+    periodLabel: "0.0", 
+    coupon: 0, 
+    principal: -price,
+    total: null  // null prevents label from showing
+  });
+  
+  // Cash inflows for each period
+  for (let t = 1; t <= n; t++) {
+    const periodYears = t / freq;
+    const couponFlow = c;
+    const principalFlow = t === n ? face : 0;
+    const totalFlow = couponFlow + principalFlow;
+    
+    flows.push({ 
+      period: periodYears,
+      periodLabel: periodYears.toString(),
+      coupon: couponFlow, 
+      principal: principalFlow, 
+      total: totalFlow 
+    });
+  }
+  
   return { flows, price, c, r, n };
 }
 
@@ -185,13 +210,8 @@ export default function App() {
   const [freq, setFreq] = useState(2);
   const bond = useMemo(() => buildBondCashFlows({ face: 100, years, couponRate, ytm, freq }), [years, couponRate, ytm, freq]);
 
-
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-
-
       {/* Content */}
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
         {/* 1) Bonds */}
@@ -216,26 +236,60 @@ export default function App() {
 
             <div className="lg:col-span-2">
               <div className="rounded-xl border border-gray-200 bg-white p-3">
-                <div style={{ height: 320 }}>
-<ResponsiveContainer width="100%" height="100%">
-  <BarChart data={[{ period: 0, coupon: 0, other: -bond.price }, ...bond.flows]} margin={CHART_MARGINS}>
-    <CartesianGrid strokeDasharray="3 3" />
-    <XAxis dataKey="period" tickMargin={10} label={{ value: "Years", position: "insideBottom", offset: -20 }} />
-    <YAxis tickFormatter={fmtUSD} width={80} />
-    <Tooltip formatter={(v) => fmtUSD(v)} contentStyle={{ borderRadius: 12, borderColor: "#e5e7eb" }} />
-    <Legend verticalAlign="top" align="right" height={36} wrapperStyle={{ paddingBottom: 6 }} />
-    <Bar dataKey="coupon" name="Coupon Cash Flows" fill={CFA.primary} />
-    <Bar dataKey="other"  name="Principal/Price"     fill={CFA.dark} />
-  </BarChart>
-</ResponsiveContainer>
+                {/* Price display above chart */}
+                <div className="mb-2 text-left">
+                  <span className="text-sm font-arial text-gray-700">
+                    <strong>Bond Price:</strong> {fmtUSD(bond.price)}
+                  </span>
                 </div>
-                <p className="text-xs text-gray-600 mt-2 font-arial">Negative bar at t=0 reflects the bond price (PV). Final period shows coupon + redemption.</p>
+                <div style={{ height: 320 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={bond.flows} margin={CHART_MARGINS}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="periodLabel" 
+                        tickMargin={10} 
+                        label={{ value: "Years", position: "insideBottom", offset: -20 }}
+                        type="category"
+                      />
+                      <YAxis tickFormatter={fmtUSD} width={80} />
+                      <Tooltip 
+                        formatter={(value, name) => [fmtUSD(value), name === 'coupon' ? 'Coupon' : 'Principal/Price']} 
+                        contentStyle={{ borderRadius: 12, borderColor: "#e5e7eb" }} 
+                      />
+                      <Legend verticalAlign="top" align="right" height={36} wrapperStyle={{ paddingBottom: 6 }} />
+                      <Bar dataKey="principal" name="Principal/Price" fill={CFA.dark} stackId="cashflow" />
+                      <Bar dataKey="coupon" name="Coupon" fill={CFA.primary} stackId="cashflow">
+                        <LabelList 
+                          dataKey="total" 
+                          position="top" 
+                          formatter={(value) => value !== null ? fmtUSD(Math.abs(value)) : ''}
+                          style={{ fontSize: '11px', fontWeight: '500', fill: '#374151' }}
+                        />
+                      </Bar>
+                      {/* Custom positioned label for the negative (first) bar */}
+                      {bond.flows[0] && bond.flows[0].total < 0 && (
+                        <text 
+                          x="12%" 
+                          y="25%" 
+                          textAnchor="middle" 
+                          fontSize="11" 
+                          fontWeight="500" 
+                          fill="#374151"
+                        >
+                          {fmtUSD(Math.abs(bond.flows[0].total))}
+                        </text>
+                      )}
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <p className="text-xs text-gray-600 mt-2 font-arial">
+                  Negative bar at t=0 reflects the bond purchase price of {fmtUSD(bond.price)}. Subsequent periods show stacked coupon and principal payments.
+                </p>
               </div>
             </div>
           </div>
         </Card>
-
-
       </main>
     </div>
   );
