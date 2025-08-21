@@ -254,7 +254,16 @@ export default function App() {
                       />
                       <YAxis tickFormatter={fmtUSD} width={80} />
                       <Tooltip 
-                        formatter={(value, name) => [fmtUSD(value), name === 'coupon' ? 'Coupon' : 'Principal/Price']} 
+                        labelFormatter={(label) => `Period ${label} years`}
+                        formatter={(value, name, props) => {
+                          // Check which bar we're actually hovering over
+                          if (props.dataKey === 'coupon') {
+                            return [fmtUSD(value), 'Coupon'];
+                          } else if (props.dataKey === 'principal') {
+                            return [fmtUSD(value), 'Principal/Price'];
+                          }
+                          return [fmtUSD(value), name];
+                        }}
                         contentStyle={{ borderRadius: 12, borderColor: "#e5e7eb" }} 
                       />
                       <Legend verticalAlign="top" align="right" height={36} wrapperStyle={{ paddingBottom: 6 }} />
