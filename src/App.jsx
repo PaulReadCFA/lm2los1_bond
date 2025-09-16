@@ -411,7 +411,7 @@ export default function BondCashFlowCalculator() {
           {bondCalculations && (
             <>
               <div className="mb-6">
-                <h3 className="font-serif text-lg text-slate-700 mb-2">Bond Cash Flow Timeline</h3>
+                <h3 className="font-serif text-lg text-slate-700 mb-2">Coupon Bond Cash Flows</h3>
                 
                 {/* Custom Legend - Updated Colors */}
                 <div className="mb-4 flex flex-wrap items-center gap-6 text-sm">
