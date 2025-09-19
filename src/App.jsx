@@ -97,7 +97,7 @@ function EnhancedNumberInput({
         )}
       </div>
 
-      {/* Range Slider */}
+      {/* Range Slider with Enhanced Accessibility */}
       <div className="px-1">
         <input
           id={`${id}-slider`}
@@ -111,12 +111,17 @@ function EnhancedNumberInput({
           style={{
             background: `linear-gradient(to right, #4476FF 0%, #4476FF ${((value - min) / (max - min)) * 100}%, #e5e7eb ${((value - min) / (max - min)) * 100}%, #e5e7eb 100%)`
           }}
-          aria-label={`${label} slider`}
-          aria-describedby={`${id}-help`}
+          aria-label={`${label} range slider`}
+          aria-valuemin={min}
+          aria-valuemax={max}
+          aria-valuenow={value}
+          aria-describedby={`${id}-help ${id}-range-values`}
         />
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
+        <div id={`${id}-range-values`} className="flex justify-between text-xs text-gray-500 mt-1">
           <span>{prefix}{min}{suffix}</span>
-          <span className="font-medium text-blue-600">{prefix}{value}{suffix}</span>
+          <span className="font-medium text-blue-600" aria-live="polite">
+            {prefix}{value}{suffix}
+          </span>
           <span>{prefix}{max}{suffix}</span>
         </div>
       </div>
@@ -275,13 +280,13 @@ export default function BondCashFlowCalculator() {
           <Card title="Bond Valuation Results" className="md:col-span-1">
             {bondCalculations ? (
               <div className="space-y-4">
-                {/* Bond Price Summary */}
+                {/* Bond Price Summary with Live Updates */}
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h4 className="font-semibold text-sm mb-2">Bond Price</h4>
-                  <p className="text-2xl font-bold text-blue-700">
+                  <p className="text-2xl font-bold text-blue-700" aria-live="polite" aria-label={`Current bond price: ${formatCurrency(bondCalculations.bondPrice)}`}>
                     {formatCurrency(bondCalculations.bondPrice)}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-xs text-gray-600 mt-1" aria-live="polite">
                     Price per $100 par: {formatCurrency(bondCalculations.bondPrice * 100 / faceValue)}
                   </p>
                 </div>
@@ -435,10 +440,18 @@ export default function BondCashFlowCalculator() {
                   </ResponsiveContainer>
                 </div>
 
-                {/* Formula Below Chart with Curriculum Equation */}
+                {/* Formula Below Chart with Accessible Mathematical Notation */}
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                   <h4 className="font-semibold text-sm mb-3">Bond Valuation Formula</h4>
-                  <div className="text-center font-mono text-sm mb-3 bg-white p-3 rounded border">
+                  
+                  {/* Accessible formula description */}
+                  <div className="sr-only">
+                    <p>Bond valuation formula: Present value of coupon bond equals PMT divided by r, multiplied by the quantity 1 minus 1 divided by the quantity 1 plus r raised to the power T, plus FV divided by the quantity 1 plus r raised to the power T.</p>
+                    <p>Where PMT is the periodic coupon payment, r is the periodic yield rate, T is the number of time periods, and FV is the face value.</p>
+                  </div>
+                  
+                  {/* Visual formula display */}
+                  <div className="text-center font-mono text-sm mb-3 bg-white p-3 rounded border" aria-hidden="true">
                     <div className="flex items-center justify-center gap-1 flex-wrap text-base">
                       <span className="font-bold" style={{ color: COLORS.presentValue }}>PV</span>
                       <sub className="text-xs">coupon bond</sub>
@@ -476,23 +489,23 @@ export default function BondCashFlowCalculator() {
                     </div>
                   </div>
                   
-                  {/* Variable Definitions with Current Values */}
-                  <div className="grid grid-cols-2 gap-2 text-xs">
+                  {/* Variable Definitions with Live Updates */}
+                  <div className="grid grid-cols-2 gap-2 text-xs" role="region" aria-label="Formula variables with current values">
                     <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded" style={{ backgroundColor: COLORS.coupon }}></span>
-                      <span><strong>PMT:</strong> {formatCurrency(bondCalculations.periodicCoupon)} (periodic coupon)</span>
+                      <span className="w-4 h-4 rounded" style={{ backgroundColor: COLORS.coupon }} aria-hidden="true"></span>
+                      <span><strong>PMT:</strong> <span aria-live="polite">{formatCurrency(bondCalculations.periodicCoupon)}</span> (periodic coupon)</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded" style={{ backgroundColor: COLORS.faceValue }}></span>
-                      <span><strong>FV:</strong> {formatCurrency(faceValue)} (face value)</span>
+                      <span className="w-4 h-4 rounded" style={{ backgroundColor: COLORS.faceValue }} aria-hidden="true"></span>
+                      <span><strong>FV:</strong> <span aria-live="polite">{formatCurrency(faceValue)}</span> (face value)</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded" style={{ backgroundColor: COLORS.yield }}></span>
-                      <span><strong>r:</strong> {(bondCalculations.periodicYield * 100).toFixed(3)}% (periodic yield)</span>
+                      <span className="w-4 h-4 rounded" style={{ backgroundColor: COLORS.yield }} aria-hidden="true"></span>
+                      <span><strong>r:</strong> <span aria-live="polite">{(bondCalculations.periodicYield * 100).toFixed(3)}%</span> (periodic yield)</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded" style={{ backgroundColor: COLORS.periods }}></span>
-                      <span><strong><em>T</em>:</strong> {bondCalculations.periods} (number of periods)</span>
+                      <span className="w-4 h-4 rounded" style={{ backgroundColor: COLORS.periods }} aria-hidden="true"></span>
+                      <span><strong><em>T</em>:</strong> <span aria-live="polite">{bondCalculations.periods}</span> (number of periods)</span>
                     </div>
                   </div>
                   
@@ -539,14 +552,14 @@ export default function BondCashFlowCalculator() {
           </Card>
         </div>
 
-        {/* Error Messages */}
+        {/* Error Messages with Proper Announcement */}
         {inputErrors.length > 0 && (
-          <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg" role="alert">
+          <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg" role="alert" aria-live="assertive">
             <div className="text-red-800 text-sm">
-              <strong>Input Errors:</strong>
+              <strong>Input Validation Errors:</strong>
               <ul className="mt-1 list-disc list-inside">
                 {inputErrors.map((error, i) => (
-                  <li key={i}>{error}</li>
+                  <li key={i} role="listitem">{error}</li>
                 ))}
               </ul>
             </div>
@@ -633,15 +646,7 @@ export default function BondCashFlowCalculator() {
           </div>
         </Card>
 
-        {/* Educational Note */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-700">
-            <strong>Bond Valuation Principles:</strong> A bond's price equals the present value of all future 
-            cash flows (coupons plus face value) discounted at the yield to maturity. When the YTM exceeds 
-            the coupon rate, the bond trades at a discount. When the coupon rate exceeds the YTM, the bond 
-            trades at a premium. This relationship reflects the time value of money and interest rate risk.
-          </p>
-        </div>
+
       </div>
     </div>
   );
