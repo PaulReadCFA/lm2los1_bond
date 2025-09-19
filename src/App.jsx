@@ -34,6 +34,7 @@ function EnhancedNumberInput({
   min, 
   max, 
   step, 
+  prefix = "",
   suffix = "", 
   helpText,
   rangeHint
@@ -67,6 +68,13 @@ function EnhancedNumberInput({
       
       {/* Number Input */}
       <div className="relative">
+        {/* Prefix (like $) */}
+        {prefix && (
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-sm font-medium">
+            {prefix}
+          </span>
+        )}
+        
         <input
           id={id}
           type="number"
@@ -75,9 +83,18 @@ function EnhancedNumberInput({
           step={step}
           value={value}
           onChange={handleInputChange}
-          className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className={`w-full rounded-lg border py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+            prefix ? 'pl-8' : 'pl-3'
+          } ${suffix ? 'pr-12' : 'pr-3'}`}
           aria-describedby={`${id}-help ${id}-slider`}
         />
+        
+        {/* Suffix (like %) */}
+        {suffix && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-sm">
+            {suffix}
+          </span>
+        )}
       </div>
 
       {/* Range Slider */}
@@ -98,9 +115,9 @@ function EnhancedNumberInput({
           aria-describedby={`${id}-help`}
         />
         <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>{min}{suffix}</span>
-          <span className="font-medium text-blue-600">{value}{suffix}</span>
-          <span>{max}{suffix}</span>
+          <span>{prefix}{min}{suffix}</span>
+          <span className="font-medium text-blue-600">{prefix}{value}{suffix}</span>
+          <span>{prefix}{max}{suffix}</span>
         </div>
       </div>
 
@@ -570,7 +587,7 @@ export default function BondCashFlowCalculator() {
               min={0.01}
               max={100000}
               step={1}
-              suffix=""
+              prefix="$"
               rangeHint="$0.01 - $100,000"
               helpText="The bond's face value or par value"
             />
@@ -616,7 +633,15 @@ export default function BondCashFlowCalculator() {
           </div>
         </Card>
 
-      
+        {/* Educational Note */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <p className="text-sm text-gray-700">
+            <strong>Bond Valuation Principles:</strong> A bond's price equals the present value of all future 
+            cash flows (coupons plus face value) discounted at the yield to maturity. When the YTM exceeds 
+            the coupon rate, the bond trades at a discount. When the coupon rate exceeds the YTM, the bond 
+            trades at a premium. This relationship reflects the time value of money and interest rate risk.
+          </p>
+        </div>
       </div>
     </div>
   );
