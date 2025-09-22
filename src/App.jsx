@@ -456,15 +456,20 @@ export default function BondCashFlowCalculator() {
                       <span className="font-bold" style={{ color: COLORS.presentValue }}>PV</span>
                       <sub className="text-xs">coupon bond</sub>
                       <span>=</span>
+                      
                       <div className="flex flex-col items-center mx-2">
                         <div className="flex items-center gap-1 border-b-2 border-gray-400 pb-1">
                           <span className="font-bold" style={{ color: COLORS.coupon }}>PMT</span>
-                          <span>/</span>
+                        </div>
+                        <div className="flex items-center gap-1 pt-1">
                           <span className="font-bold" style={{ color: COLORS.yield }}>r</span>
                         </div>
                       </div>
+                      
                       <span>×</span>
-                      <span>[</span>
+                      
+                      {/* Square brackets around the annuity factor only */}
+                      <span className="text-2xl text-gray-600">[</span>
                       <span>1 -</span>
                       <div className="flex flex-col items-center mx-1">
                         <div className="border-b border-gray-400 px-1">1</div>
@@ -474,7 +479,8 @@ export default function BondCashFlowCalculator() {
                           <span>)<sup className="font-bold italic" style={{ color: COLORS.periods }}>T</sup></span>
                         </div>
                       </div>
-                      <span>]</span>
+                      <span className="text-2xl text-gray-600">]</span>
+                      
                       <span>+</span>
                       <div className="flex flex-col items-center mx-1">
                         <div className="border-b border-gray-400 px-1">
@@ -645,7 +651,6 @@ export default function BondCashFlowCalculator() {
             />
           </div>
         </Card>
-
 
       </div>
     </div>
