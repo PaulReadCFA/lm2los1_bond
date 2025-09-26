@@ -11,6 +11,41 @@ import {
   LabelList
 } from "recharts";
 
+// Accessible tooltip component
+const HelpTooltip = ({ id, text }) => {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <span className="relative inline-block ml-1">
+      <button
+        type="button"
+        className="w-4 h-4 rounded-full bg-gray-200 text-gray-700 text-xs font-bold 
+                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+        aria-describedby={visible ? `${id}-help` : undefined}
+        aria-label="Help information"
+        onMouseEnter={() => setVisible(true)}
+        onMouseLeave={() => setVisible(false)}
+        onFocus={() => setVisible(true)}
+        onBlur={() => setVisible(false)}
+      >
+        ?
+      </button>
+      {visible && (
+        <span
+          id={`${id}-help`}
+          role="tooltip"
+          className="absolute left-5 top-1 z-10 w-56 p-2 text-xs text-white bg-gray-800 
+                     rounded shadow-lg"
+        >
+          {text}
+        </span>
+      )}
+    </span>
+  );
+};
+
+
+
 function Card({ title, children, className = "" }) {
   return (
     <div className={`bg-white rounded-2xl shadow-md p-5 border border-gray-100 ${className}`}>
@@ -62,9 +97,11 @@ function EnhancedNumberInput({
 
   return (
     <div className="flex flex-col space-y-2">
-      <label htmlFor={id} className="text-sm font-medium text-gray-700">
-        {label} {rangeHint && <span className="text-gray-500 text-xs">({rangeHint})</span>}
-      </label>
+      <label htmlFor={id} className="text-sm font-medium text-gray-700 flex items-center">
+  {label} 
+  {helpText && <HelpTooltip id={id} text={helpText} />}
+  {rangeHint && <span className="ml-1 text-gray-500 text-xs">({rangeHint})</span>}
+</label>
       
       {/* Number Input */}
       <div className="relative">
@@ -126,12 +163,7 @@ function EnhancedNumberInput({
         </div>
       </div>
 
-      {/* Help Text */}
-      {helpText && (
-        <span id={`${id}-help`} className="text-xs text-gray-600">
-          {helpText}
-        </span>
-      )}
+  
     </div>
   );
 }
@@ -577,26 +609,26 @@ export default function BondCashFlowCalculator() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             
             {/* Payment Frequency Selector - First */}
-            <div className="flex flex-col space-y-2">
-              <label htmlFor="frequency-select" className="text-sm font-medium text-gray-700">
-                Payment Frequency <span className="text-gray-500 text-xs">(per year)</span>
-              </label>
-              <select
-                id="frequency-select"
-                value={frequency}
-                onChange={e => setFrequency(parseInt(e.target.value))}
-                className="rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                aria-describedby="frequency-help"
-              >
-                <option value={1}>Annual (1)</option>
-                <option value={2}>Semi-annual (2)</option>
-                <option value={4}>Quarterly (4)</option>
-                <option value={12}>Monthly (12)</option>
-              </select>
-              <span id="frequency-help" className="text-xs text-gray-600">
-                Select how many coupon payments are made per year
-              </span>
-            </div>
+<div className="flex flex-col space-y-2">
+  <label htmlFor="frequency-select" className="text-sm font-medium text-gray-700 flex items-center">
+    Payment Frequency
+    <HelpTooltip id="frequency-select" text="Select how many coupon payments are made per year" />
+    <span className="ml-1 text-gray-500 text-xs">(per year)</span>
+  </label>
+  
+  <select
+    id="frequency-select"
+    value={frequency}
+    onChange={e => setFrequency(parseInt(e.target.value))}
+    className="rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+  >
+    <option value={1}>Annual (1)</option>
+    <option value={2}>Semi-annual (2)</option>
+    <option value={4}>Quarterly (4)</option>
+    <option value={12}>Monthly (12)</option>
+  </select>
+</div>
+
 
             <EnhancedNumberInput
               id="face-value-input"
