@@ -255,7 +255,7 @@ export default function BondCashFlowCalculator() {
 
     // Periodic cash flows
     for (let t = 1; t <= periods; t++) {
-      const yearEquivalent = t / frequency;
+      
       const couponPayment = periodicCoupon;
       const principalPayment = (t === periods) ? faceValue : 0;
       const totalCashFlow = couponPayment + principalPayment;
@@ -263,7 +263,11 @@ export default function BondCashFlowCalculator() {
       cashFlows.push({
         period: t,
         periodLabel: t.toString(),
-        yearLabel: yearEquivalent.toFixed(1),
+        // Only show integer years on the X axis
+// In cashFlows
+yearLabel: t / frequency,
+
+
         couponPayment,
         principalPayment,
         totalCashFlow,
@@ -430,9 +434,11 @@ export default function BondCashFlowCalculator() {
                     >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis 
-                        dataKey="yearLabel" 
-                        label={{ value: 'Years', position: 'insideBottom', offset: -10 }}
-                      />
+  dataKey="yearLabel"
+  tickFormatter={(val) => Number.isInteger(val) ? val.toString() : ""}
+  label={{ value: 'Years', position: 'insideBottom', offset: -10 }}
+/>
+
                       <YAxis 
                         tickFormatter={(value) => formatCurrency(value)}
                       />
