@@ -270,8 +270,8 @@ export default function BondCashFlowCalculator() {
         {/* Main Layout: Formula + Results on Left, Chart + Parameters on Right */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Left Column: Formula and Results */}
-          <div className="lg:col-span-1 space-y-6">
+          {/* Left Column: Formula and Results - appears AFTER chart/inputs on mobile */}
+          <div className="lg:col-span-1 space-y-6 order-2 lg:order-1">
             
             {/* Bond Valuation Formula */}
             <Card title="Bond Valuation Formula">
@@ -455,8 +455,8 @@ export default function BondCashFlowCalculator() {
             </Card>
           </div>
 
-          {/* Right Column: Chart and Parameters */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* Right Column: Chart and Parameters - appears FIRST on mobile */}
+          <div className="lg:col-span-2 space-y-6 order-1 lg:order-2">
             
             {/* Bond Cash Flows Chart */}
             <Card title="Bond Cash Flows">
