@@ -11,37 +11,23 @@ import {
   LabelList
 } from "recharts";
 
-// Accessible tooltip component
-const HelpTooltip = ({ id, text }) => {
-  const [visible, setVisible] = useState(false);
-
-  return (
-    <span className="relative inline-block ml-1">
-      <button
-        type="button"
-        className="w-4 h-4 rounded-full bg-gray-200 text-gray-700 text-xs font-bold 
-                   focus:outline-none focus:ring-2 focus:ring-blue-500"
-        aria-describedby={visible ? `${id}-help` : undefined}
-        aria-label="Help information"
-        onMouseEnter={() => setVisible(true)}
-        onMouseLeave={() => setVisible(false)}
-        onFocus={() => setVisible(true)}
-        onBlur={() => setVisible(false)}
-      >
-        ?
-      </button>
-      {visible && (
-        <span
-          id={`${id}-help`}
-          role="tooltip"
-          className="absolute left-5 top-1 z-10 w-56 p-2 text-xs text-white bg-gray-800 
-                     rounded shadow-lg pointer-events-none"
-        >
-          {text}
-        </span>
-      )}
-    </span>
-  );
+// CFA-branded color palette
+const COLORS = {
+  primary: "#4476ff",
+  dark: "#06005a",
+  darkAlt: "#38337b",
+  positive: "#6991ff",
+  negative: "#ea792d",
+  purple: "#7a46ff",
+  purpleAlt: "#50037f",
+  lightBlue: "#4476ff",
+  orange: "#ea792d",
+  darkText: "#06005a",
+  faceValue: "#06005a",      // CFA Dark Blue (18.18:1) - was black
+   coupon: "#4476ff",         // CFA Bright Blue (OK for large text/graphics)
+  yield: "#7a46ff",          // CFA Purple (5.06:1) - was #7C3AED
+  presentValue: "#50037f",   // CFA Eggplant (12.65:1) - was green
+  purchase: "#f2af81",       // CFA Orange 60% (better contrast) - was light red
 };
 
 function Card({ title, children, className = "" }) {
@@ -53,80 +39,52 @@ function Card({ title, children, className = "" }) {
   );
 }
 
-function safeParseFloat(value, fallback = 0) {
-  const parsed = parseFloat(value);
-  return isNaN(parsed) ? fallback : parsed;
-}
-
-// Simplified Input Component (no sliders)
-function SimpleNumberInput({ 
-  id, 
-  label, 
-  value, 
-  onChange, 
-  min, 
-  max, 
-  step, 
-  prefix = "",
-  suffix = "", 
-  helpText,
-  rangeHint
-}) {
-  const handleInputChange = (e) => {
-    const newValue = safeParseFloat(e.target.value);
-    if (newValue >= min && newValue <= max) {
-      onChange(newValue);
-    }
-  };
-
+function InfoIcon({ children, id }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  
   return (
-    <div className="flex flex-col space-y-2">
-      <label htmlFor={id} className="text-sm font-medium text-gray-700 flex items-center">
-        {label} 
-        {helpText && <HelpTooltip id={id} text={helpText} />}
-        {rangeHint && <span className="ml-1 text-gray-500 text-xs">({rangeHint})</span>}
-      </label>
+    <div className="relative inline-block ml-1">
+      <button
+        type="button"
+        className="w-4 h-4 rounded-full bg-gray-400 text-white text-xs font-bold hover:bg-gray-500 focus:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        onFocus={() => setShowTooltip(true)}
+        onBlur={() => setShowTooltip(false)}
+        aria-describedby={`${id}-tooltip`}
+        aria-label="More information"
+      >
+        ?
+      </button>
       
-      <div className="relative">
-        {prefix && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-sm font-medium">
-            {prefix}
-          </span>
-        )}
-        
-        <input
-          id={id}
-          type="number"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={handleInputChange}
-          className={`w-full rounded-lg border py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-            prefix ? 'pl-8' : 'pl-3'
-          } ${suffix ? 'pr-12' : 'pr-3'}`}
-          aria-describedby={helpText ? `${id}-help` : undefined}
-        />
-        
-        {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-sm">
-            {suffix}
-          </span>
-        )}
-      </div>
+      {showTooltip && (
+        <div
+          id={`${id}-tooltip`}
+          role="tooltip"
+          className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-10 max-w-xs"
+        >
+          {children}
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-800"></div>
+        </div>
+      )}
     </div>
   );
 }
 
-// Color scheme for consistent financial component coding
-const COLORS = {
-  faceValue: "#000000",      // Black for face value/principal
-  coupon: "#4476FF",         // Blue for coupon payments  
-  yield: "#7C3AED",          // Purple for yield/interest rates
-  periods: "#6B7280",        // Gray for time periods
-  presentValue: "#10B981",   // Green for present values
-  purchase: "#fca5a5"        // Light red for purchase/negative flows
-};
+function ValidationMessage({ errors }) {
+  if (!errors || Object.keys(errors).length === 0) return null;
+  
+  return (
+    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg" role="alert">
+      <h3 className="text-red-800 font-semibold text-sm mb-2">Please correct the following:</h3>
+      <ul className="text-red-800 text-sm space-y-1">
+        {Object.entries(errors).map(([field, error]) => (
+          <li key={field}>• {error}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 const formatCurrency = (amount, showNegativeAsParens = false) => {
   const absAmount = Math.abs(amount);
@@ -141,93 +99,140 @@ const formatCurrency = (amount, showNegativeAsParens = false) => {
   }
 };
 
-export default function BondCashFlowCalculator() {
-  // Fixed values per SME requirements
-  const faceValue = 100; // Standard face value
-  const frequency = 2;   // Semi-annual coupons (standard)
-  
-  // User inputs with realistic ranges
-  const [couponRate, setCouponRate] = useState(8.6);
-  const [ytm, setYtm] = useState(6.5);
-  const [years, setYears] = useState(5);
+function ResultsSection({ bondCalculations, faceValue, couponRate, ytm, years }) {
+  if (!bondCalculations) return null;
 
-  // Input validation
-  const validateInputs = () => {
-    const errors = [];
-    
-    if (couponRate < 0 || couponRate > 10) {
-      errors.push("Coupon Rate must be between 0% and 10%");
-    }
-    if (ytm < 0 || ytm > 10) {
-      errors.push("Yield to Maturity must be between 0% and 10%");
-    }
-    if (years < 1 || years > 5) {
-      errors.push("Years to Maturity must be between 1 and 5");
-    }
-    
-    return errors;
-  };
+  return (
+    <div className="space-y-6">
+      {/* Bond Valuation Formula */}
+      <div className="p-4 bg-white rounded-lg border border-gray-200">
+        <div className="font-semibold mb-3 text-sm">Bond Valuation Formula</div>
+        
+        {/* Accessible formula description */}
+        <div className="sr-only">
+          <p>Bond valuation formula: Present value of coupon bond equals PMT subscript 1 divided by the quantity 1 plus r raised to the power 1, plus PMT subscript 2 divided by the quantity 1 plus r raised to the power 2, and so on, plus PMT subscript N plus FV subscript N, all divided by the quantity 1 plus r raised to the power N.</p>
+          <p>Where PMT is the periodic coupon payment, r is the periodic yield rate, N is the number of periods, and FV is the face value.</p>
+        </div>
+        
+        {/* Visual formula display */}
+        <div className="text-center font-mono text-sm mb-3 bg-gray-50 p-3 rounded" aria-hidden="true">
+          <div className="flex items-center justify-center gap-1 flex-wrap text-sm">
+            <span className="font-bold" style={{ color: COLORS.presentValue }}>PV</span>
+            <sub className="text-xs">coupon bond</sub>
+            <span className="mx-1">=</span>
+            
+            {/* First term */}
+            <div className="flex flex-col items-center mx-1">
+              <div className="border-b border-gray-400 px-2 pb-1">
+                <span className="font-bold" style={{ color: COLORS.coupon }}>PMT</span>
+                <sub className="text-xs">1</sub>
+              </div>
+              <div className="flex items-center text-xs pt-1">
+                <span>(1+</span>
+                <span className="font-bold" style={{ color: COLORS.yield }}>r</span>
+                <span>)<sup>1</sup></span>
+              </div>
+            </div>
+            
+            <span>+</span>
+            
+            {/* Second term */}
+            <div className="flex flex-col items-center mx-1">
+              <div className="border-b border-gray-400 px-2 pb-1">
+                <span className="font-bold" style={{ color: COLORS.coupon }}>PMT</span>
+                <sub className="text-xs">2</sub>
+              </div>
+              <div className="flex items-center text-xs pt-1">
+                <span>(1+</span>
+                <span className="font-bold" style={{ color: COLORS.yield }}>r</span>
+                <span>)<sup>2</sup></span>
+              </div>
+            </div>
+            
+            <span className="mx-1">+ ... +</span>
+            
+            {/* Final term with PMT_N + FV_N */}
+            <div className="flex flex-col items-center mx-1">
+              <div className="border-b border-gray-400 px-2 pb-1">
+                <span>(</span>
+                <span className="font-bold" style={{ color: COLORS.coupon }}>PMT</span>
+                <sub className="text-xs" style={{ color: COLORS.darkText }}>N</sub>
+                <span> + </span>
+                <span className="font-bold" style={{ color: COLORS.faceValue }}>FV</span>
+                <sub className="text-xs" style={{ color: COLORS.darkText }}>N</sub>
+                <span>)</span>
+              </div>
+              <div className="flex items-center text-xs pt-1">
+                <span>(1+</span>
+                <span className="font-bold" style={{ color: COLORS.yield }}>r</span>
+                <span>)<sup style={{ color: COLORS.darkText }}>N</sup></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Variable Definitions with Live Updates */}
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: COLORS.coupon }} aria-hidden="true"></span>
+            <span><strong>PMT:</strong> {formatCurrency(bondCalculations.periodicCoupon)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: COLORS.faceValue }} aria-hidden="true"></span>
+            <span><strong>FV:</strong> {formatCurrency(faceValue)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: COLORS.yield }} aria-hidden="true"></span>
+            <span><strong>r:</strong> {(bondCalculations.periodicYield * 100).toFixed(3)}%</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: COLORS.darkText }} aria-hidden="true"></span>
+            <span><strong>N:</strong> {bondCalculations.periods}</span>
+          </div>
+        </div>
+      </div>
 
-  const inputErrors = validateInputs();
+      {/* Bond Price */}
+      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="text-3xl font-serif text-blue-600 mb-2">{formatCurrency(bondCalculations.bondPrice)}</div>
+        <div className="text-sm text-gray-700">
+          <div><strong>Bond Price</strong> - per $100 par</div>
+        </div>
+      </div>
 
-  // Bond calculations using useMemo for performance
-  const bondCalculations = useMemo(() => {
-    if (inputErrors.length > 0) return null;
+      {/* Price Analysis - Combined */}
+      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+        <div className="text-xs text-purple-700 space-y-2">
+          <div className="font-semibold">
+            {Math.abs(bondCalculations.bondPrice - faceValue) < 0.01 ? (
+              "Par Bond"
+            ) : bondCalculations.bondPrice > faceValue ? (
+              "Premium Bond"
+            ) : (
+              "Discount Bond"
+            )}
+          </div>
+          <div>
+            {Math.abs(bondCalculations.bondPrice - faceValue) < 0.01 ? (
+              <>Trading at par. Coupon rate ≈ YTM ({ytm.toFixed(2)}%)</>
+            ) : bondCalculations.bondPrice > faceValue ? (
+              <>Trading {formatCurrency(bondCalculations.bondPrice - faceValue)} above par. Coupon ({couponRate.toFixed(2)}%) &gt; YTM ({ytm.toFixed(2)}%)</>
+            ) : (
+              <>Trading {formatCurrency(faceValue - bondCalculations.bondPrice)} below par. YTM ({ytm.toFixed(2)}%) &gt; Coupon ({couponRate.toFixed(2)}%)</>
+            )}
+          </div>
+          <div className="text-xs pt-2 border-t border-purple-300 space-y-1">
+            <div>PV Coupons: {formatCurrency(bondCalculations.pvCoupons)}</div>
+            <div>PV Face: {formatCurrency(bondCalculations.pvFaceValue)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-    const periods = years * frequency;
-    const periodicCouponRate = couponRate / 100 / frequency;
-    const periodicYield = ytm / 100 / frequency;
-    const periodicCoupon = faceValue * periodicCouponRate;
-
-    // Calculate bond price (present value of all cash flows)
-    let pvCoupons = 0;
-    for (let t = 1; t <= periods; t++) {
-      pvCoupons += periodicCoupon / Math.pow(1 + periodicYield, t);
-    }
-    const pvFaceValue = faceValue / Math.pow(1 + periodicYield, periods);
-    const bondPrice = pvCoupons + pvFaceValue;
-
-    // Build cash flow data for chart
-    const cashFlows = [];
-    
-    // Initial purchase (negative cash flow)
-    cashFlows.push({
-      period: 0,
-      periodLabel: "0",
-      yearLabel: 0,
-      couponPayment: 0,
-      principalPayment: -bondPrice,
-      totalCashFlow: -bondPrice,
-      total: -bondPrice
-    });
-
-    // Periodic cash flows
-    for (let t = 1; t <= periods; t++) {
-      const couponPayment = periodicCoupon;
-      const principalPayment = (t === periods) ? faceValue : 0;
-      const totalCashFlow = couponPayment + principalPayment;
-
-      cashFlows.push({
-        period: t,
-        periodLabel: t.toString(),
-        yearLabel: t / frequency,
-        couponPayment,
-        principalPayment,
-        totalCashFlow,
-        total: totalCashFlow
-      });
-    }
-
-    return {
-      bondPrice,
-      periodicCoupon,
-      periodicYield,
-      periods,
-      cashFlows,
-      pvCoupons,
-      pvFaceValue
-    };
-  }, [couponRate, ytm, years, inputErrors]);
+function BondChart({ bondCalculations }) {
+  if (!bondCalculations) return null;
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -250,395 +255,258 @@ export default function BondCashFlowCalculator() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Error Messages at Top */}
-        {inputErrors.length > 0 && (
-          <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg" role="alert" aria-live="assertive">
-            <div className="text-red-800 text-sm">
-              <strong>Input Validation Errors:</strong>
-              <ul className="mt-1 list-disc list-inside">
-                {inputErrors.map((error, i) => (
-                  <li key={i} role="listitem">{error}</li>
-                ))}
-              </ul>
+    <>
+      {/* Legend */}
+      <div className="mb-4 flex flex-wrap items-center gap-4 text-sm">
+        <span className="flex items-center">
+          <span className="w-4 h-4 mr-2 rounded" style={{backgroundColor: COLORS.purchase}}></span>
+          Initial Purchase
+        </span>
+        <span className="flex items-center">
+          <span className="w-4 h-4 mr-2 rounded" style={{backgroundColor: COLORS.coupon}}></span>
+          Coupon Payment
+        </span>
+        <span className="flex items-center">
+          <span className="w-4 h-4 mr-2 rounded" style={{backgroundColor: COLORS.faceValue}}></span>
+          Principal Repayment
+        </span>
+      </div>
+
+      {/* Chart */}
+      <div className="h-96" role="img" aria-labelledby="chart-title" aria-describedby="chart-description">
+        <div className="sr-only">
+          <h3 id="chart-title">Bond Cash Flow Timeline Chart</h3>
+          <p id="chart-description">
+            Bar chart showing cash flows over time, with light red bar for initial purchase, 
+            blue bars for coupon payments, and black bars for principal repayment.
+          </p>
+        </div>
+
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={bondCalculations.cashFlows} margin={{ top: 20, right: 30, left: 50, bottom: 60 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+              dataKey="yearLabel"
+              tickFormatter={(val) => Number.isInteger(val) ? val.toString() : ""}
+              label={{ value: 'Years', position: 'insideBottom', offset: -10 }}
+            />
+            <YAxis tickFormatter={(value) => formatCurrency(value)} />
+            <Tooltip content={<CustomTooltip />} />
+            
+            <Bar dataKey="principalPayment" name="Principal/Initial Purchase" stackId="cashflow">
+              {bondCalculations.cashFlows.map((entry, index) => (
+                <Cell key={`cell-principal-${index}`} fill={entry.principalPayment >= 0 ? COLORS.faceValue : COLORS.purchase} />
+              ))}
+            </Bar>
+            
+            <Bar dataKey="couponPayment" name="Coupon Payment" fill={COLORS.coupon} stackId="cashflow">
+              <LabelList 
+                dataKey="total" 
+                position="top" 
+                formatter={(value) => {
+                  if (value !== null && Math.abs(value) >= 0.01) {
+                    return formatCurrency(value, true);
+                  }
+                  return '';
+                }}
+                style={{ fontSize: '11px', fontWeight: '600', fill: COLORS.darkText }}
+              />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Educational note */}
+      <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-700">
+        <strong>Bond Cash Flows:</strong> Chart shows the initial purchase (negative cash flow at time 0), periodic coupon payments, and principal repayment at maturity.
+      </div>
+    </>
+  );
+}
+
+export default function App() {
+  const faceValue = 100;
+  const frequency = 2;
+  
+  const [couponRate, setCouponRate] = useState(8.6);
+  const [ytm, setYtm] = useState(6.5);
+  const [years, setYears] = useState(5);
+
+  const validateInputs = () => {
+    const errors = {};
+    if (couponRate < 0 || couponRate > 10) errors.couponRate = "Coupon Rate must be between 0% and 10%";
+    if (ytm < 0 || ytm > 10) errors.ytm = "Yield to Maturity must be between 0% and 10%";
+    if (years < 1 || years > 5) errors.years = "Years to Maturity must be between 1 and 5";
+    return errors;
+  };
+
+  const inputErrors = validateInputs();
+
+  const bondCalculations = useMemo(() => {
+    if (Object.keys(inputErrors).length > 0) return null;
+
+    const periods = years * frequency;
+    const periodicCouponRate = couponRate / 100 / frequency;
+    const periodicYield = ytm / 100 / frequency;
+    const periodicCoupon = faceValue * periodicCouponRate;
+
+    let pvCoupons = 0;
+    for (let t = 1; t <= periods; t++) {
+      pvCoupons += periodicCoupon / Math.pow(1 + periodicYield, t);
+    }
+    const pvFaceValue = faceValue / Math.pow(1 + periodicYield, periods);
+    const bondPrice = pvCoupons + pvFaceValue;
+
+    const cashFlows = [];
+    cashFlows.push({
+      period: 0,
+      periodLabel: "0",
+      yearLabel: 0,
+      couponPayment: 0,
+      principalPayment: -bondPrice,
+      totalCashFlow: -bondPrice,
+      total: -bondPrice
+    });
+
+    for (let t = 1; t <= periods; t++) {
+      const couponPayment = periodicCoupon;
+      const principalPayment = (t === periods) ? faceValue : 0;
+      const totalCashFlow = couponPayment + principalPayment;
+
+      cashFlows.push({
+        period: t,
+        periodLabel: t.toString(),
+        yearLabel: t / frequency,
+        couponPayment,
+        principalPayment,
+        totalCashFlow,
+        total: totalCashFlow
+      });
+    }
+
+    return { bondPrice, periodicCoupon, periodicYield, periods, cashFlows, pvCoupons, pvFaceValue };
+  }, [couponRate, ytm, years, inputErrors]);
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6 font-sans">
+      <main className="max-w-7xl mx-auto space-y-6">
+
+        {/* RESULTS AND CHART */}
+        {bondCalculations && (
+          <>
+            {/* MOBILE */}
+            <div className="lg:hidden space-y-6">
+              <Card title="Results">
+                <ResultsSection bondCalculations={bondCalculations} faceValue={faceValue} couponRate={couponRate} ytm={ytm} years={years} />
+              </Card>
+              <Card title="Bond Cash Flows">
+                <BondChart bondCalculations={bondCalculations} />
+              </Card>
             </div>
-          </div>
+
+            {/* DESKTOP */}
+            <div className="hidden lg:grid lg:grid-cols-5 gap-6">
+              <div className="lg:col-span-1">
+                <Card title="Results">
+                  <ResultsSection bondCalculations={bondCalculations} faceValue={faceValue} couponRate={couponRate} ytm={ytm} years={years} />
+                </Card>
+              </div>
+              <div className="lg:col-span-4">
+                <Card title="Bond Cash Flows">
+                  <BondChart bondCalculations={bondCalculations} />
+                </Card>
+              </div>
+            </div>
+          </>
         )}
 
-        {/* Main Layout: Formula + Results on Left, Chart + Parameters on Right */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* INPUTS */}
+        <Card title="Bond Cash Flow Calculator">
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg space-y-2 text-sm">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">Face Value:</span>
+              <span className="font-semibold">{formatCurrency(faceValue)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">Payment Frequency:</span>
+              <span className="font-semibold">Semi-annual</span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
+            
+            <div className="flex items-center gap-2">
+              <label htmlFor="coupon" className="font-medium text-gray-700 whitespace-nowrap flex items-center text-sm">
+                Coupon Rate (%)
+                <span className="text-red-500 ml-1">*</span>
+                <InfoIcon id="coupon">Annual coupon rate</InfoIcon>
+              </label>
+              <div className="w-24">
+                <input
+                  id="coupon"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="10"
+                  value={couponRate}
+                  onChange={(e) => setCouponRate(+e.target.value)}
+                  className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm ${
+                    inputErrors.couponRate ? 'border-red-300' : 'border-gray-300'
+                  } focus:border-blue-500 focus:ring-blue-500`}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label htmlFor="ytm" className="font-medium text-gray-700 whitespace-nowrap flex items-center text-sm">
+                Yield to Maturity (%)
+                <span className="text-red-500 ml-1">*</span>
+                <InfoIcon id="ytm">Market yield</InfoIcon>
+              </label>
+              <div className="w-24">
+                <input
+                  id="ytm"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="10"
+                  value={ytm}
+                  onChange={(e) => setYtm(+e.target.value)}
+                  className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm ${
+                    inputErrors.ytm ? 'border-red-300' : 'border-gray-300'
+                  } focus:border-blue-500 focus:ring-blue-500`}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label htmlFor="years" className="font-medium text-gray-700 whitespace-nowrap flex items-center text-sm">
+                Years to Maturity
+                <span className="text-red-500 ml-1">*</span>
+                <InfoIcon id="years">Years until bond matures</InfoIcon>
+              </label>
+              <div className="w-24">
+                <input
+                  id="years"
+                  type="number"
+                  step="0.5"
+                  min="1"
+                  max="5"
+                  value={years}
+                  onChange={(e) => setYears(+e.target.value)}
+                  className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm ${
+                    inputErrors.years ? 'border-red-300' : 'border-gray-300'
+                  } focus:border-blue-500 focus:ring-blue-500`}
+                />
+              </div>
+            </div>
+
+          </div>
           
-          {/* Left Column: Formula and Results - appears AFTER chart/inputs on mobile */}
-          <div className="lg:col-span-1 space-y-6 order-2 lg:order-1">
-            
-            {/* Bond Valuation Formula */}
-            <Card title="Bond Valuation Formula">
-              {/* Accessible formula description */}
-              <div className="sr-only">
-                <p>Bond valuation formula: Present value of coupon bond equals PMT subscript 1 divided by the quantity 1 plus r raised to the power 1, plus PMT subscript 2 divided by the quantity 1 plus r raised to the power 2, and so on, plus PMT subscript N plus FV subscript N, all divided by the quantity 1 plus r raised to the power N.</p>
-                <p>Where PMT is the periodic coupon payment, r is the periodic yield rate, N is the number of periods, and FV is the face value.</p>
-              </div>
-              
-              {/* Visual formula display */}
-              <div className="text-center font-mono text-sm mb-3 bg-white p-3 rounded border" aria-hidden="true">
-                <div className="flex items-center justify-center gap-1 flex-wrap text-sm">
-                  <span className="font-bold" style={{ color: COLORS.presentValue }}>PV</span>
-                  <sub className="text-xs">coupon bond</sub>
-                  <span className="mx-1">=</span>
-                  
-                  {/* First term */}
-                  <div className="flex flex-col items-center mx-1">
-                    <div className="border-b border-gray-400 px-2 pb-1">
-                      <span className="font-bold" style={{ color: COLORS.coupon }}>PMT</span>
-                      <sub className="text-xs">1</sub>
-                    </div>
-                    <div className="flex items-center text-xs pt-1">
-                      <span>(1+</span>
-                      <span className="font-bold" style={{ color: COLORS.yield }}>r</span>
-                      <span>)<sup>1</sup></span>
-                    </div>
-                  </div>
-                  
-                  <span>+</span>
-                  
-                  {/* Second term */}
-                  <div className="flex flex-col items-center mx-1">
-                    <div className="border-b border-gray-400 px-2 pb-1">
-                      <span className="font-bold" style={{ color: COLORS.coupon }}>PMT</span>
-                      <sub className="text-xs">2</sub>
-                    </div>
-                    <div className="flex items-center text-xs pt-1">
-                      <span>(1+</span>
-                      <span className="font-bold" style={{ color: COLORS.yield }}>r</span>
-                      <span>)<sup>2</sup></span>
-                    </div>
-                  </div>
-                  
-                  <span className="mx-1">+ ... +</span>
-                  
-                  {/* Final term with PMT_N + FV_N */}
-                  <div className="flex flex-col items-center mx-1">
-                    <div className="border-b border-gray-400 px-2 pb-1">
-                      <span>(</span>
-                      <span className="font-bold" style={{ color: COLORS.coupon }}>PMT</span>
-                      <sub className="text-xs" style={{ color: COLORS.periods }}>N</sub>
-                      <span> + </span>
-                      <span className="font-bold" style={{ color: COLORS.faceValue }}>FV</span>
-                      <sub className="text-xs" style={{ color: COLORS.periods }}>N</sub>
-                      <span>)</span>
-                    </div>
-                    <div className="flex items-center text-xs pt-1">
-                      <span>(1+</span>
-                      <span className="font-bold" style={{ color: COLORS.yield }}>r</span>
-                      <span>)<sup style={{ color: COLORS.periods }}>N</sup></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Variable Definitions with Live Updates */}
-              {bondCalculations && (
-                <div className="grid grid-cols-2 gap-2 text-xs" role="region" aria-label="Formula variables with current values">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded" style={{ backgroundColor: COLORS.coupon }} aria-hidden="true"></span>
-                    <span><strong>PMT:</strong> <span aria-live="polite">{formatCurrency(bondCalculations.periodicCoupon)}</span></span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded" style={{ backgroundColor: COLORS.faceValue }} aria-hidden="true"></span>
-                    <span><strong>FV:</strong> <span aria-live="polite">{formatCurrency(faceValue)}</span></span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded" style={{ backgroundColor: COLORS.yield }} aria-hidden="true"></span>
-                    <span><strong>r:</strong> <span aria-live="polite">{(bondCalculations.periodicYield * 100).toFixed(3)}%</span></span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded" style={{ backgroundColor: COLORS.periods }} aria-hidden="true"></span>
-                    <span><strong><em>N</em>:</strong> <span aria-live="polite">{bondCalculations.periods}</span></span>
-                  </div>
-                </div>
-              )}
-              
-              <div className="mt-3 text-xs text-gray-600">
-                <p>The bond price equals the sum of present values of all future cash flows. Each payment is discounted by (1+r) raised to its period number.</p>
-              </div>
-            </Card>
+          <ValidationMessage errors={inputErrors} />
+        </Card>
 
-            {/* Bond Valuation Results */}
-            <Card title="Bond Valuation Results">
-              {bondCalculations ? (
-                <div className="space-y-4">
-                  {/* Bond Price Summary with Live Updates */}
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-2">Bond Price</h4>
-                    <p className="text-2xl font-bold text-blue-700" aria-live="polite" aria-label={`Current bond price: ${formatCurrency(bondCalculations.bondPrice)}`}>
-                      {formatCurrency(bondCalculations.bondPrice)}
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1" aria-live="polite">
-                      Price per $100 par
-                    </p>
-                  </div>
-
-                  {/* Detailed Calculations */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Periodic Coupon:</span>
-                      <span className="font-semibold" style={{ color: COLORS.coupon }}>
-                        {formatCurrency(bondCalculations.periodicCoupon)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Number of Payments:</span>
-                      <span className="font-semibold" style={{ color: COLORS.periods }}>
-                        {bondCalculations.periods}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Periodic Yield:</span>
-                      <span className="font-semibold" style={{ color: COLORS.yield }}>
-                        {(bondCalculations.periodicYield * 100).toFixed(3)}%
-                      </span>
-                    </div>
-                    <div className="border-t pt-2 mt-2">
-                      <div className="flex justify-between">
-                        <span>PV of Coupons:</span>
-                        <span className="font-semibold" style={{ color: COLORS.presentValue }}>
-                          {formatCurrency(bondCalculations.pvCoupons)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>PV of Face Value:</span>
-                        <span className="font-semibold" style={{ color: COLORS.presentValue }}>
-                          {formatCurrency(bondCalculations.pvFaceValue)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between border-t pt-1 mt-1 font-semibold">
-                        <span>Total Bond Price:</span>
-                        <span style={{ color: COLORS.presentValue }}>
-                          {formatCurrency(bondCalculations.bondPrice)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Price Analysis */}
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-2">Price Analysis</h4>
-                    <div className="text-xs">
-                      {Math.abs(bondCalculations.bondPrice - faceValue) < 0.01 ? (
-                        <p>
-                          <strong>Par Bond:</strong> Trading at approximately par value ({formatCurrency(bondCalculations.bondPrice)}). 
-                          The coupon rate ({couponRate.toFixed(2)}%) approximately equals the yield to maturity ({ytm.toFixed(2)}%).
-                        </p>
-                      ) : bondCalculations.bondPrice > faceValue ? (
-                        <p>
-                          <strong>Premium Bond:</strong> Trading at {formatCurrency(bondCalculations.bondPrice)}, 
-                          which is {formatCurrency(bondCalculations.bondPrice - faceValue)} above par value. 
-                          The coupon rate ({couponRate.toFixed(2)}%) exceeds the yield to maturity ({ytm.toFixed(2)}%).
-                        </p>
-                      ) : (
-                        <p>
-                          <strong>Discount Bond:</strong> Trading at {formatCurrency(bondCalculations.bondPrice)}, 
-                          which is {formatCurrency(faceValue - bondCalculations.bondPrice)} below par value. 
-                          The yield to maturity ({ytm.toFixed(2)}%) exceeds the coupon rate ({couponRate.toFixed(2)}%).
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 bg-gray-100 rounded-lg">
-                  <p className="text-gray-600 text-sm">Adjust parameters to see valuation results</p>
-                </div>
-              )}
-            </Card>
-          </div>
-
-          {/* Right Column: Chart and Parameters - appears FIRST on mobile */}
-          <div className="lg:col-span-2 space-y-6 order-1 lg:order-2">
-            
-            {/* Bond Cash Flows Chart */}
-            <Card title="Bond Cash Flows">
-              {bondCalculations ? (
-                <div>
-                  {/* Custom Legend with Consistent Colors */}
-                  <div className="mb-4 flex flex-wrap items-center gap-4 text-sm">
-                    <span className="flex items-center">
-                      <span className="w-4 h-4 mr-2" style={{backgroundColor: COLORS.purchase}}></span>
-                      Initial Purchase
-                    </span>
-                    <span className="flex items-center">
-                      <span className="w-4 h-4 mr-2" style={{backgroundColor: COLORS.coupon}}></span>
-                      Coupon Payment
-                    </span>
-                    <span className="flex items-center">
-                      <span className="w-4 h-4 mr-2" style={{backgroundColor: COLORS.faceValue}}></span>
-                      Principal Repayment
-                    </span>
-                  </div>
-                  
-                  {/* Chart Title */}
-                  <div className="text-left text-sm text-gray-600 mb-2 font-medium">
-                    Cash Flow ($)
-                  </div>
-                  
-                  <div className="h-96" role="img" aria-labelledby="chart-title" aria-describedby="chart-description">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={bondCalculations.cashFlows}
-                        margin={{ top: 20, right: 30, left: 50, bottom: 60 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="yearLabel"
-                          tickFormatter={(val) => Number.isInteger(val) ? val.toString() : ""}
-                          label={{ value: 'Years', position: 'insideBottom', offset: -10 }}
-                        />
-                        <YAxis 
-                          tickFormatter={(value) => formatCurrency(value)}
-                        />
-                        <Tooltip content={<CustomTooltip />} />
-                        
-                        {/* Principal/Face Value (includes negative initial purchase) */}
-                        <Bar 
-                          dataKey="principalPayment" 
-                          name="Principal/Initial Purchase" 
-                          stackId="cashflow"
-                        >
-                          {bondCalculations.cashFlows.map((entry, index) => (
-                            <Cell key={`cell-principal-${index}`} fill={entry.principalPayment >= 0 ? COLORS.faceValue : COLORS.purchase} />
-                          ))}
-                        </Bar>
-                        
-                        {/* Coupon Payments */}
-                        <Bar 
-                          dataKey="couponPayment" 
-                          name="Coupon Payment" 
-                          fill={COLORS.coupon} 
-                          stackId="cashflow"
-                        >
-                          <LabelList 
-                            dataKey="total" 
-                            position="top" 
-                            formatter={(value) => {
-                              if (value !== null && Math.abs(value) >= 0.01) {
-                                return formatCurrency(value, true);
-                              }
-                              return '';
-                            }}
-                            style={{ fontSize: '11px', fontWeight: '600', fill: '#1f2937' }}
-                          />
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  {/* Screen Reader Data Table */}
-                  <div className="sr-only">
-                    <h4 id="chart-title">Bond Cash Flow Timeline Chart</h4>
-                    <p id="chart-description">
-                      Bar chart showing cash flows over time, with light red bar for initial purchase, 
-                      blue bars for coupon payments, and black bars for principal repayment.
-                    </p>
-                    <table>
-                      <caption>Bond cash flow data by time period</caption>
-                      <thead>
-                        <tr>
-                          <th scope="col">Time (Years)</th>
-                          <th scope="col">Coupon Payment</th>
-                          <th scope="col">Principal Payment</th>
-                          <th scope="col">Total Cash Flow</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {bondCalculations.cashFlows.map(cf => (
-                          <tr key={cf.period}>
-                            <th scope="row">{cf.yearLabel}</th>
-                            <td>{formatCurrency(Math.abs(cf.couponPayment))}</td>
-                            <td>{formatCurrency(cf.principalPayment, true)}</td>
-                            <td>{formatCurrency(cf.totalCashFlow, true)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-96 flex items-center justify-center bg-gray-50 rounded-lg">
-                  <p className="text-gray-500">Adjust parameters to see cash flows</p>
-                </div>
-              )}
-            </Card>
-
-            {/* Bond Parameters - Below Chart */}
-            <Card title="Bond Parameters">
-              <div className="space-y-4">
-                
-                {/* Fixed Parameters Display */}
-                <div className="p-3 bg-blue-50 rounded-lg space-y-2 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700">Face Value:</span>
-                    <span className="font-semibold" style={{ color: COLORS.faceValue }}>
-                      {formatCurrency(faceValue)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700">Payment Frequency:</span>
-                    <span className="font-semibold" style={{ color: COLORS.periods }}>
-                      Semi-annual
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-600 mt-2 italic">
-                    * Standard bond parameters
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <SimpleNumberInput
-                    id="coupon-rate-input"
-                    label="Annual Coupon Rate"
-                    value={couponRate}
-                    onChange={setCouponRate}
-                    min={0}
-                    max={10}
-                    step={0.1}
-                    suffix="%"
-                    rangeHint="0% - 10%"
-                    helpText="The annual coupon rate as a percentage"
-                  />
-
-                  <SimpleNumberInput
-                    id="ytm-input"
-                    label="Yield to Maturity"
-                    value={ytm}
-                    onChange={setYtm}
-                    min={0}
-                    max={10}
-                    step={0.1}
-                    suffix="%"
-                    rangeHint="0% - 10%"
-                    helpText="The bond's yield to maturity as a percentage"
-                  />
-
-                  <SimpleNumberInput
-                    id="years-input"
-                    label="Years to Maturity"
-                    value={years}
-                    onChange={setYears}
-                    min={1}
-                    max={5}
-                    step={0.5}
-                    suffix=" yrs"
-                    rangeHint="1 - 5 years"
-                    helpText="Number of years until bond maturity"
-                  />
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
