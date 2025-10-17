@@ -354,6 +354,9 @@ export default function App() {
       <main className="max-w-7xl mx-auto space-y-6">
         {/* 1️⃣ Equation Card */}
         <Card title="Bond valuation equation">
+          <p className="mb-4 text-sm text-gray-700">
+        Equation 6 shows the price of a coupon bond expressed as:
+      </p>
           <EquationSection />
         </Card>
 
