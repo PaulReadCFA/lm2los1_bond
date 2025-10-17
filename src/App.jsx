@@ -364,7 +364,8 @@ export default function App() {
         {bondCalculations && (
           <>
             {/* Mobile (stacked) */}
-            <div className="xl:hidden space-y-6">
+            <div className="lg:hidden space-y-6">
+
               <Card title="Results and analysis">
                 <MiscSection bondCalculations={bondCalculations} faceValue={faceValue} couponRate={couponRate} ytm={ytm} years={years} />
               </Card>
@@ -374,13 +375,13 @@ export default function App() {
             </div>
 
             {/* Desktop side-by-side */}
-            <div className="hidden xl:grid xl:grid-cols-5 gap-6">
-              <div className="xl:col-span-1">
+            <div className="hidden lg:grid xl:grid-cols-6 gap-6">
+              <div className="lg:col-span-2">
                 <Card title="Results and analysis">
                   <MiscSection bondCalculations={bondCalculations} faceValue={faceValue} couponRate={couponRate} ytm={ytm} years={years} />
                 </Card>
               </div>
-              <div className="xl:col-span-4">
+              <div className="lg:col-span-4">
                 <Card title="Bond cash flows">
                   <BondChart bondCalculations={bondCalculations} />
                 </Card>
@@ -405,72 +406,147 @@ export default function App() {
           </div>
 
           {/* Inputs */}
-          <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
-            {/* Coupon Rate */}
-            <div className="flex items-center gap-2">
-              <label htmlFor="coupon" className="font-medium text-gray-700 text-sm">
-                Coupon rate <span className="text-red-500 ml-1">*</span>
-              </label>
-              <div className="relative w-24">
-                <input
-                  id="coupon"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="10"
-                  value={couponRate}
-                  onChange={(e) => setCouponRate(+e.target.value)}
-                  className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm pr-6 ${
-                    inputErrors.couponRate ? "border-red-300" : "border-gray-300"
-                  } focus:border-blue-500 focus:ring-blue-600`}
-                />
-                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
-              </div>
-            </div>
+<div className="flex flex-wrap items-end gap-x-6 gap-y-4">
 
-            {/* Yield-to-maturity */}
-            <div className="flex items-center gap-2">
-              <label htmlFor="ytm" className="font-medium text-gray-700 text-sm">
-                Yield-to-maturity <span className="text-red-500 ml-1">*</span>
-              </label>
-              <div className="relative w-24">
-                <input
-                  id="ytm"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="10"
-                  value={ytm}
-                  onChange={(e) => setYtm(+e.target.value)}
-                  className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm pr-6 ${
-                    inputErrors.ytm ? "border-red-300" : "border-gray-300"
-                  } focus:border-blue-500 focus:ring-blue-600`}
-                />
-                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
-              </div>
-            </div>
+  {/* Coupon Rate */}
+  <div className="flex items-center gap-2">
+    {/* Tooltip icon (left of input) */}
+    <div className="relative inline-block">
+      <button
+        type="button"
+        className="w-4 h-4 rounded-full bg-gray-400 text-white text-xs font-bold hover:bg-gray-500 focus:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-1"
+        onMouseEnter={(e) => e.currentTarget.nextSibling.classList.remove('hidden')}
+        onMouseLeave={(e) => e.currentTarget.nextSibling.classList.add('hidden')}
+        onFocus={(e) => e.currentTarget.nextSibling.classList.remove('hidden')}
+        onBlur={(e) => e.currentTarget.nextSibling.classList.add('hidden')}
+        aria-describedby="coupon-tooltip"
+        aria-label="Coupon rate information"
+      >
+        ?
+      </button>
+      <div
+        id="coupon-tooltip"
+        role="tooltip"
+        className="hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-10 max-w-xs"
+      >
+        Enter a value between 0% and 10%.
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-800"></div>
+      </div>
+    </div>
 
-            {/* Years-to-maturity */}
-            <div className="flex items-center gap-2">
-              <label htmlFor="years" className="font-medium text-gray-700 text-sm">
-                Years-to-maturity <span className="text-red-500 ml-1">*</span>
-              </label>
-              <div className="w-24">
-                <input
-                  id="years"
-                  type="number"
-                  step="0.5"
-                  min="1"
-                  max="5"
-                  value={years}
-                  onChange={(e) => setYears(+e.target.value)}
-                  className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm ${
-                    inputErrors.years ? "border-red-300" : "border-gray-300"
-                  } focus:border-blue-500 focus:ring-blue-600`}
-                />
-              </div>
-            </div>
-          </div>
+    {/* Label and input */}
+    <label htmlFor="coupon" className="font-medium text-gray-700 text-sm">
+      Coupon rate <span className="text-red-500 ml-1">*</span>
+    </label>
+    <div className="relative w-24">
+      <input
+        id="coupon"
+        type="number"
+        step="0.1"
+        min="0"
+        max="10"
+        value={couponRate}
+        onChange={(e) => setCouponRate(+e.target.value)}
+        className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm pr-6 ${
+          inputErrors.couponRate ? "border-red-300" : "border-gray-300"
+        } focus:border-blue-500 focus:ring-blue-600`}
+      />
+      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+    </div>
+  </div>
+
+  {/* Yield-to-maturity */}
+  <div className="flex items-center gap-2">
+    {/* Tooltip icon */}
+    <div className="relative inline-block">
+      <button
+        type="button"
+        className="w-4 h-4 rounded-full bg-gray-400 text-white text-xs font-bold hover:bg-gray-500 focus:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-1"
+        onMouseEnter={(e) => e.currentTarget.nextSibling.classList.remove('hidden')}
+        onMouseLeave={(e) => e.currentTarget.nextSibling.classList.add('hidden')}
+        onFocus={(e) => e.currentTarget.nextSibling.classList.remove('hidden')}
+        onBlur={(e) => e.currentTarget.nextSibling.classList.add('hidden')}
+        aria-describedby="ytm-tooltip"
+        aria-label="Yield to maturity information"
+      >
+        ?
+      </button>
+      <div
+        id="ytm-tooltip"
+        role="tooltip"
+        className="hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-10 max-w-xs"
+      >
+        Enter a value between 0% and 10%.
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-800"></div>
+      </div>
+    </div>
+
+    <label htmlFor="ytm" className="font-medium text-gray-700 text-sm">
+      Yield-to-maturity <span className="text-red-500 ml-1">*</span>
+    </label>
+    <div className="relative w-24">
+      <input
+        id="ytm"
+        type="number"
+        step="0.1"
+        min="0"
+        max="10"
+        value={ytm}
+        onChange={(e) => setYtm(+e.target.value)}
+        className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm pr-6 ${
+          inputErrors.ytm ? "border-red-300" : "border-gray-300"
+        } focus:border-blue-500 focus:ring-blue-600`}
+      />
+      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+    </div>
+  </div>
+
+  {/* Years-to-maturity */}
+  <div className="flex items-center gap-2">
+    {/* Tooltip icon */}
+    <div className="relative inline-block">
+      <button
+        type="button"
+        className="w-4 h-4 rounded-full bg-gray-400 text-white text-xs font-bold hover:bg-gray-500 focus:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-1"
+        onMouseEnter={(e) => e.currentTarget.nextSibling.classList.remove('hidden')}
+        onMouseLeave={(e) => e.currentTarget.nextSibling.classList.add('hidden')}
+        onFocus={(e) => e.currentTarget.nextSibling.classList.remove('hidden')}
+        onBlur={(e) => e.currentTarget.nextSibling.classList.add('hidden')}
+        aria-describedby="years-tooltip"
+        aria-label="Years to maturity information"
+      >
+        ?
+      </button>
+      <div
+        id="years-tooltip"
+        role="tooltip"
+        className="hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-10 max-w-xs"
+      >
+        Enter a value between 1 and 5 years.
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-800"></div>
+      </div>
+    </div>
+
+    <label htmlFor="years" className="font-medium text-gray-700 text-sm">
+      Years-to-maturity <span className="text-red-500 ml-1">*</span>
+    </label>
+    <div className="w-24">
+      <input
+        id="years"
+        type="number"
+        step="0.5"
+        min="1"
+        max="5"
+        value={years}
+        onChange={(e) => setYears(+e.target.value)}
+        className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm ${
+          inputErrors.years ? "border-red-300" : "border-gray-300"
+        } focus:border-blue-500 focus:ring-blue-600`}
+      />
+    </div>
+  </div>
+</div>
+
 
           <ValidationMessage errors={inputErrors} />
         </Card>
