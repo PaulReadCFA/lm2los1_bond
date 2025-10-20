@@ -23,11 +23,11 @@ const COLORS = {
   lightBlue: "#4476ff",
   orange: "#ea792d",
   darkText: "#06005a",
-  faceValue: "#06005a",      // CFA Dark Blue (18.18:1)
-  coupon: "#4476ff",         // CFA Bright Blue
-  yield: "#7a46ff",          // CFA Purple
-  presentValue: "#50037f",   // CFA Eggplant
-  purchase: "#f2af81",       // CFA Orange 60%
+  faceValue: "#06005a",
+  coupon: "#4476ff",
+  yield: "#7a46ff",
+  presentValue: "#50037f",
+  purchase: "#f2af81",
 };
 
 // ============================
@@ -190,7 +190,7 @@ function BondChart({ bondCalculations }) {
   const [showLabels, setShowLabels] = useState(true);
 
   useEffect(() => {
-    const handleResize = () => setShowLabels(window.innerWidth > 640);
+    const handleResize = () => setShowLabels(window.innerWidth > 860);
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -269,6 +269,13 @@ export default function App() {
   const [couponRate, setCouponRate] = useState(8.6);
   const [ytm, setYtm] = useState(6.5);
   const [years, setYears] = useState(5);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const validateInputs = () => {
     const errors = {};
@@ -319,6 +326,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 font-sans">
+      {/* DEBUG: Window size indicator */}
+      <div className="fixed top-2 right-2 bg-black text-white px-3 py-2 rounded text-sm font-mono z-50 shadow-lg">
+        Width: {windowWidth}px
+      </div>
+      
       <main className="max-w-7xl mx-auto space-y-6">
         {/* 1️⃣ Equation Card */}
         <Card title="Bond Valuation Equation">
@@ -328,41 +340,28 @@ export default function App() {
           <EquationSection />
         </Card>
 
-        {/* 2️⃣ + 3️⃣ Desktop grid */}
-     {bondCalculations && (
-          <>
-            {/* Mobile (stacked) */}
-            <div className="sm:hidden space-y-6">
+        {/* 2️⃣ + 3️⃣ Results and Chart - Always side by side */}
+        {bondCalculations && (
+          <div className="grid grid-cols-6 gap-6">
+            <div className="col-span-6 sm:col-span-2">
               <Card title="Results and Analysis">
                 <MiscSection bondCalculations={bondCalculations} faceValue={faceValue} couponRate={couponRate} ytm={ytm} years={years} />
               </Card>
+            </div>
+            <div className="col-span-6 sm:col-span-4">
               <Card title="Bond Cash Flows">
                 <BondChart bondCalculations={bondCalculations} />
               </Card>
             </div>
-
-            {/* Desktop side-by-side */}
-            <div className="hidden sm:grid sm:grid-cols-6 gap-6">
-              <div className="sm:col-span-2">
-                <Card title="Results and Analysis">
-                  <MiscSection bondCalculations={bondCalculations} faceValue={faceValue} couponRate={couponRate} ytm={ytm} years={years} />
-                </Card>
-              </div>
-              <div className="sm:col-span-4">
-                <Card title="Bond Cash Flows">
-                  <BondChart bondCalculations={bondCalculations} />
-                </Card>
-              </div>
-            </div>
-          </>
+          </div>
         )}
 
         {/* 4️⃣ Data Entry Card */}
-<Card title="Bond Cash Flow Calculator">
-  <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm">
-    <div className="flex flex-wrap justify-between items-center gap-x-8 gap-y-2">
-      <div className="flex items-center">
-        <span className="text-gray-700 mr-2">Face value:</span>
+        <Card title="Bond Cash Flow Calculator">
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm">
+            <div className="flex flex-wrap justify-between items-center gap-x-8 gap-y-2">
+              <div className="flex items-center">
+                <span className="text-gray-700 mr-2">Face value:</span>
         <span className="font-semibold">{formatCurrency(faceValue)}</span>
       </div>
       <div className="flex items-center">
