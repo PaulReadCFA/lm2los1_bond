@@ -358,21 +358,91 @@ export default function App() {
         )}
 
         {/* 4️⃣ Data Entry Card */}
-        <Card title="Bond Cash Flow Calculator">
-          <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm">
-            <div className="flex flex-wrap justify-between items-center gap-x-8 gap-y-2">
-              <div className="flex items-center">
-                <span className="text-gray-700 mr-2">Face value:</span>
-                <span className="font-semibold">{formatCurrency(faceValue)}</span>
-              </div>
-              <div className="flex items-center">
-                <span className="text-gray-700 mr-2">Payment frequency:</span>
-                <span className="font-semibold">Semi-annual</span>
-              </div>
-            </div>
-          </div>
-          <ValidationMessage errors={inputErrors} />
-        </Card>
+<Card title="Bond Cash Flow Calculator">
+  <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm">
+    <div className="flex flex-wrap justify-between items-center gap-x-8 gap-y-2">
+      <div className="flex items-center">
+        <span className="text-gray-700 mr-2">Face value:</span>
+        <span className="font-semibold">{formatCurrency(faceValue)}</span>
+      </div>
+      <div className="flex items-center">
+        <span className="text-gray-700 mr-2">Payment frequency:</span>
+        <span className="font-semibold">Semi-annual</span>
+      </div>
+    </div>
+  </div>
+
+  {/* 🟦 Input controls */}
+  <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
+    {/* Coupon Rate */}
+    <div className="flex items-center gap-2">
+      <label htmlFor="coupon" className="font-medium text-gray-700 text-sm">
+        Coupon rate <span className="text-red-500 ml-1">*</span>
+      </label>
+      <div className="relative w-24">
+        <input
+          id="coupon"
+          type="number"
+          step="0.1"
+          min="0"
+          max="10"
+          value={couponRate}
+          onChange={(e) => setCouponRate(+e.target.value)}
+          className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm pr-6 ${
+            inputErrors.couponRate ? "border-red-300" : "border-gray-300"
+          } focus:border-blue-500 focus:ring-blue-600`}
+        />
+        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+      </div>
+    </div>
+
+    {/* Yield-to-Maturity */}
+    <div className="flex items-center gap-2">
+      <label htmlFor="ytm" className="font-medium text-gray-700 text-sm">
+        Yield-to-maturity <span className="text-red-500 ml-1">*</span>
+      </label>
+      <div className="relative w-24">
+        <input
+          id="ytm"
+          type="number"
+          step="0.1"
+          min="0"
+          max="10"
+          value={ytm}
+          onChange={(e) => setYtm(+e.target.value)}
+          className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm pr-6 ${
+            inputErrors.ytm ? "border-red-300" : "border-gray-300"
+          } focus:border-blue-500 focus:ring-blue-600`}
+        />
+        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+      </div>
+    </div>
+
+    {/* Years-to-Maturity */}
+    <div className="flex items-center gap-2">
+      <label htmlFor="years" className="font-medium text-gray-700 text-sm">
+        Years-to-maturity <span className="text-red-500 ml-1">*</span>
+      </label>
+      <div className="w-24">
+        <input
+          id="years"
+          type="number"
+          step="0.5"
+          min="1"
+          max="5"
+          value={years}
+          onChange={(e) => setYears(+e.target.value)}
+          className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm ${
+            inputErrors.years ? "border-red-300" : "border-gray-300"
+          } focus:border-blue-500 focus:ring-blue-600`}
+        />
+      </div>
+    </div>
+  </div>
+
+  <ValidationMessage errors={inputErrors} />
+</Card>
+
       </main>
     </div>
   );
