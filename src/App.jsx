@@ -329,10 +329,10 @@ export default function App() {
         </Card>
 
         {/* 2️⃣ + 3️⃣ Desktop grid */}
-        {bondCalculations && (
+     {bondCalculations && (
           <>
             {/* Mobile (stacked) */}
-            <div className="md:hidden space-y-6">
+            <div className="sm:hidden space-y-6">
               <Card title="Results and Analysis">
                 <MiscSection bondCalculations={bondCalculations} faceValue={faceValue} couponRate={couponRate} ytm={ytm} years={years} />
               </Card>
@@ -342,13 +342,13 @@ export default function App() {
             </div>
 
             {/* Desktop side-by-side */}
-            <div className="hidden md:grid xl:grid-cols-6 gap-6">
-              <div className="md:col-span-2">
+            <div className="hidden sm:grid sm:grid-cols-6 gap-6">
+              <div className="sm:col-span-2">
                 <Card title="Results and Analysis">
                   <MiscSection bondCalculations={bondCalculations} faceValue={faceValue} couponRate={couponRate} ytm={ytm} years={years} />
                 </Card>
               </div>
-              <div className="md:col-span-4">
+              <div className="sm:col-span-4">
                 <Card title="Bond Cash Flows">
                   <BondChart bondCalculations={bondCalculations} />
                 </Card>
