@@ -343,12 +343,12 @@ export default function App() {
 
             {/* Desktop side-by-side */}
             <div className="hidden md:grid xl:grid-cols-6 gap-6">
-              <div className="lg:col-span-2">
+              <div className="md:col-span-2">
                 <Card title="Results and Analysis">
                   <MiscSection bondCalculations={bondCalculations} faceValue={faceValue} couponRate={couponRate} ytm={ytm} years={years} />
                 </Card>
               </div>
-              <div className="lg:col-span-4">
+              <div className="md:col-span-4">
                 <Card title="Bond Cash Flows">
                   <BondChart bondCalculations={bondCalculations} />
                 </Card>
