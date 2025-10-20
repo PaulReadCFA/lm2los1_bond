@@ -63,8 +63,13 @@ function ValidationMessage({ errors }) {
 // UTILS
 // ============================
 const formatCurrency = (amount, showNegativeAsParens = false) => {
-  const absAmount = Math.abs(amount);
-  const formattedAmount = `$${absAmount.toFixed(2)}`;
+  if (isNaN(amount)) return "$0.00";
+  const formattedAmount = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  }).format(Math.abs(amount));
+
   if (amount < 0 && showNegativeAsParens) return `(${formattedAmount})`;
   if (amount < 0) return `-${formattedAmount}`;
   return formattedAmount;
@@ -79,7 +84,6 @@ function EquationSection() {
       className="p-4 bg-white rounded-lg border border-gray-200 overflow-x-auto xl:overflow-x-visible"
       aria-describedby="equation-description"
     >
-      
       <p className="sr-only" id="equation-description">
         Bond valuation equation: Present value of a coupon bond equals the coupon payment divided by the rate,
         multiplied by open bracket one minus one divided by the quantity one plus the rate raised to the power T,
@@ -90,9 +94,7 @@ function EquationSection() {
           className="font-mono text-sm p-3 rounded inline-block whitespace-normal break-words text-center max-w-full"
           aria-hidden="true"
         >
-          <span className="font-bold" style={{ color: COLORS.presentValue }}>
-            PV
-          </span>
+          <span className="font-bold" style={{ color: COLORS.presentValue }}>PV</span>
           <sub style={{ color: COLORS.darkText }}>coupon bond</sub>
           <span className="mx-1">=</span>
           <span className="inline-flex flex-col items-center mx-1">
@@ -103,8 +105,7 @@ function EquationSection() {
           </span>
           <span className="mx-1">×</span>
           <span className="inline-flex items-stretch align-middle mx-1">
-            <span className="flex flex-col justify-center text-base leading-none"
-              style={{ fontSize: "1.2em", fontWeight: "600", lineHeight: "1" }}>
+            <span className="flex flex-col justify-center text-base leading-none" style={{ fontWeight: "600" }}>
               [
             </span>
             <span className="inline-flex items-center px-1">
@@ -116,8 +117,7 @@ function EquationSection() {
                 </span>
               </span>
             </span>
-            <span className="flex flex-col justify-center text-base leading-none"
-              style={{ fontSize: "1.2em", fontWeight: "600", lineHeight: "1" }}>
+            <span className="flex flex-col justify-center text-base leading-none" style={{ fontWeight: "600" }}>
               ]
             </span>
           </span>
@@ -143,29 +143,9 @@ function MiscSection({ bondCalculations, faceValue, couponRate, ytm, years }) {
   if (!bondCalculations) return null;
   return (
     <div className="space-y-6">
-      {/* Legend */}
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded" style={{ backgroundColor: COLORS.coupon }} aria-hidden="true"></span>
-          <span><strong>PMT:</strong> {formatCurrency(bondCalculations.periodicCoupon)}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded" style={{ backgroundColor: COLORS.faceValue }} aria-hidden="true"></span>
-          <span><strong>FV:</strong> {formatCurrency(faceValue)}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded" style={{ backgroundColor: COLORS.yield }} aria-hidden="true"></span>
-          <span><strong>r:</strong> {(bondCalculations.periodicYield * 100).toFixed(3)}%</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded" style={{ backgroundColor: COLORS.darkText }} aria-hidden="true"></span>
-          <span><strong>T:</strong> {bondCalculations.periods}</span>
-        </div>
-      </div>
-
       {/* PV Bond Price */}
       <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <div className="font-semibold text-sm text-blue-800 mb-1">PV bond price</div>
+        <div className="font-semibold text-sm text-blue-800 mb-1">PV Bond Price</div>
         <div className="text-3xl font-serif text-blue-600">
           {formatCurrency(bondCalculations.bondPrice)}{" "}
           <span className="text-sm text-gray-700 font-sans">per $100 par</span>
@@ -174,7 +154,7 @@ function MiscSection({ bondCalculations, faceValue, couponRate, ytm, years }) {
 
       {/* Premium–Discount Analysis */}
       <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-        <div className="font-semibold text-sm text-purple-800 mb-2">Premium–discount analysis</div>
+        <div className="font-semibold text-sm text-purple-800 mb-2">Premium–Discount Analysis</div>
         <div className="text-xs text-purple-700 space-y-2">
           <div className="font-semibold">
             {Math.abs(bondCalculations.bondPrice - faceValue) < 0.01
@@ -251,15 +231,7 @@ function BondChart({ bondCalculations }) {
         </span>
       </div>
 
-      <div className="h-96" role="img" aria-labelledby="chart-title" aria-describedby="chart-description">
-        <div className="sr-only">
-          <h3 id="chart-title">Bond cash flow timeline chart</h3>
-          <p id="chart-description">
-            Bar chart showing cash flows over time, with orange bar for initial purchase, blue bars for coupon payments,
-            and dark blue bars for principal repayment.
-          </p>
-        </div>
-
+      <div className="h-96" role="img" aria-label="Bond cash flow timeline chart">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={bondCalculations.cashFlows} margin={{ top: 20, right: 30, left: 50, bottom: 60 }}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -274,11 +246,9 @@ function BondChart({ bondCalculations }) {
             <Bar dataKey="couponPayment" name="Coupon Payment" fill={COLORS.coupon} stackId="cashflow">
               {showLabels && (
                 <LabelList
-                  dataKey="total"
+                  dataKey="totalCashFlow"
                   position="top"
-                  formatter={(value) =>
-                    value !== null && Math.abs(value) >= 0.01 ? formatCurrency(value, true) : ""
-                  }
+                  formatter={(value) => (value && Math.abs(value) >= 0.01 ? formatCurrency(value, true) : "")}
                   style={{ fontSize: "11px", fontWeight: "600", fill: COLORS.darkText }}
                 />
               )}
@@ -330,8 +300,7 @@ export default function App() {
         couponPayment: 0,
         principalPayment: -bondPrice,
         totalCashFlow: -bondPrice,
-        total: -bondPrice
-      }
+      },
     ];
     for (let t = 1; t <= periods; t++) {
       const couponPayment = periodicCoupon;
@@ -343,7 +312,6 @@ export default function App() {
         couponPayment,
         principalPayment,
         totalCashFlow,
-        total: totalCashFlow
       });
     }
     return { bondPrice, periodicCoupon, periodicYield, periods, cashFlows, pvCoupons, pvFaceValue };
@@ -353,10 +321,10 @@ export default function App() {
     <div className="min-h-screen bg-gray-50 p-6 font-sans">
       <main className="max-w-7xl mx-auto space-y-6">
         {/* 1️⃣ Equation Card */}
-        <Card title="Bond valuation equation">
+        <Card title="Bond Valuation Equation">
           <p className="mb-4 text-sm text-gray-700">
-        Equation 6 shows the price of a coupon bond expressed as:
-      </p>
+            Equation 6 shows the price of a coupon bond expressed as:
+          </p>
           <EquationSection />
         </Card>
 
@@ -365,11 +333,10 @@ export default function App() {
           <>
             {/* Mobile (stacked) */}
             <div className="lg:hidden space-y-6">
-
-              <Card title="Results and analysis">
+              <Card title="Results and Analysis">
                 <MiscSection bondCalculations={bondCalculations} faceValue={faceValue} couponRate={couponRate} ytm={ytm} years={years} />
               </Card>
-              <Card title="Bond cash flows">
+              <Card title="Bond Cash Flows">
                 <BondChart bondCalculations={bondCalculations} />
               </Card>
             </div>
@@ -377,12 +344,12 @@ export default function App() {
             {/* Desktop side-by-side */}
             <div className="hidden lg:grid xl:grid-cols-6 gap-6">
               <div className="lg:col-span-2">
-                <Card title="Results and analysis">
+                <Card title="Results and Analysis">
                   <MiscSection bondCalculations={bondCalculations} faceValue={faceValue} couponRate={couponRate} ytm={ytm} years={years} />
                 </Card>
               </div>
               <div className="lg:col-span-4">
-                <Card title="Bond cash flows">
+                <Card title="Bond Cash Flows">
                   <BondChart bondCalculations={bondCalculations} />
                 </Card>
               </div>
@@ -391,7 +358,7 @@ export default function App() {
         )}
 
         {/* 4️⃣ Data Entry Card */}
-        <Card title="Bond cash flow calculator">
+        <Card title="Bond Cash Flow Calculator">
           <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm">
             <div className="flex flex-wrap justify-between items-center gap-x-8 gap-y-2">
               <div className="flex items-center">
@@ -404,150 +371,6 @@ export default function App() {
               </div>
             </div>
           </div>
-
-          {/* Inputs */}
-<div className="flex flex-wrap items-end gap-x-6 gap-y-4">
-
-  {/* Coupon Rate */}
-  <div className="flex items-center gap-2">
-    {/* Tooltip icon (left of input) */}
-    <div className="relative inline-block">
-      <button
-        type="button"
-        className="w-4 h-4 rounded-full bg-gray-400 text-white text-xs font-bold hover:bg-gray-500 focus:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-1"
-        onMouseEnter={(e) => e.currentTarget.nextSibling.classList.remove('hidden')}
-        onMouseLeave={(e) => e.currentTarget.nextSibling.classList.add('hidden')}
-        onFocus={(e) => e.currentTarget.nextSibling.classList.remove('hidden')}
-        onBlur={(e) => e.currentTarget.nextSibling.classList.add('hidden')}
-        aria-describedby="coupon-tooltip"
-        aria-label="Coupon rate information"
-      >
-        ?
-      </button>
-      <div
-        id="coupon-tooltip"
-        role="tooltip"
-        className="hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-10 max-w-xs"
-      >
-        Enter a value between 0% and 10%.
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-800"></div>
-      </div>
-    </div>
-
-    {/* Label and input */}
-    <label htmlFor="coupon" className="font-medium text-gray-700 text-sm">
-      Coupon rate <span className="text-red-500 ml-1">*</span>
-    </label>
-    <div className="relative w-24">
-      <input
-        id="coupon"
-        type="number"
-        step="0.1"
-        min="0"
-        max="10"
-        value={couponRate}
-        onChange={(e) => setCouponRate(+e.target.value)}
-        className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm pr-6 ${
-          inputErrors.couponRate ? "border-red-300" : "border-gray-300"
-        } focus:border-blue-500 focus:ring-blue-600`}
-      />
-      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
-    </div>
-  </div>
-
-  {/* Yield-to-maturity */}
-  <div className="flex items-center gap-2">
-    {/* Tooltip icon */}
-    <div className="relative inline-block">
-      <button
-        type="button"
-        className="w-4 h-4 rounded-full bg-gray-400 text-white text-xs font-bold hover:bg-gray-500 focus:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-1"
-        onMouseEnter={(e) => e.currentTarget.nextSibling.classList.remove('hidden')}
-        onMouseLeave={(e) => e.currentTarget.nextSibling.classList.add('hidden')}
-        onFocus={(e) => e.currentTarget.nextSibling.classList.remove('hidden')}
-        onBlur={(e) => e.currentTarget.nextSibling.classList.add('hidden')}
-        aria-describedby="ytm-tooltip"
-        aria-label="Yield to maturity information"
-      >
-        ?
-      </button>
-      <div
-        id="ytm-tooltip"
-        role="tooltip"
-        className="hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-10 max-w-xs"
-      >
-        Enter a value between 0% and 10%.
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-800"></div>
-      </div>
-    </div>
-
-    <label htmlFor="ytm" className="font-medium text-gray-700 text-sm">
-      Yield-to-maturity <span className="text-red-500 ml-1">*</span>
-    </label>
-    <div className="relative w-24">
-      <input
-        id="ytm"
-        type="number"
-        step="0.1"
-        min="0"
-        max="10"
-        value={ytm}
-        onChange={(e) => setYtm(+e.target.value)}
-        className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm pr-6 ${
-          inputErrors.ytm ? "border-red-300" : "border-gray-300"
-        } focus:border-blue-500 focus:ring-blue-600`}
-      />
-      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
-    </div>
-  </div>
-
-  {/* Years-to-maturity */}
-  <div className="flex items-center gap-2">
-    {/* Tooltip icon */}
-    <div className="relative inline-block">
-      <button
-        type="button"
-        className="w-4 h-4 rounded-full bg-gray-400 text-white text-xs font-bold hover:bg-gray-500 focus:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-1"
-        onMouseEnter={(e) => e.currentTarget.nextSibling.classList.remove('hidden')}
-        onMouseLeave={(e) => e.currentTarget.nextSibling.classList.add('hidden')}
-        onFocus={(e) => e.currentTarget.nextSibling.classList.remove('hidden')}
-        onBlur={(e) => e.currentTarget.nextSibling.classList.add('hidden')}
-        aria-describedby="years-tooltip"
-        aria-label="Years to maturity information"
-      >
-        ?
-      </button>
-      <div
-        id="years-tooltip"
-        role="tooltip"
-        className="hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-10 max-w-xs"
-      >
-        Enter a value between 1 and 5 years.
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-800"></div>
-      </div>
-    </div>
-
-    <label htmlFor="years" className="font-medium text-gray-700 text-sm">
-      Years-to-maturity <span className="text-red-500 ml-1">*</span>
-    </label>
-    <div className="w-24">
-      <input
-        id="years"
-        type="number"
-        step="0.5"
-        min="1"
-        max="5"
-        value={years}
-        onChange={(e) => setYears(+e.target.value)}
-        className={`block w-full rounded-md shadow-sm px-2 py-2 text-sm ${
-          inputErrors.years ? "border-red-300" : "border-gray-300"
-        } focus:border-blue-500 focus:ring-blue-600`}
-      />
-    </div>
-  </div>
-</div>
-
-
           <ValidationMessage errors={inputErrors} />
         </Card>
       </main>
