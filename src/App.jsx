@@ -24,7 +24,7 @@ const COLORS = {
   purpleAlt: "#50037f",
   lightBlue: "#4476ff",
   orange: "#ea792d",
-  mint: "#49b2b8", // WCAG-friendly mint
+  mint: "#49b2b8",
   darkText: "#06005a",
   faceValue: "#06005a",
   coupon: "#4476ff",
@@ -343,7 +343,7 @@ export default function App() {
     }
 
     return { bondPrice, periodicCoupon, periodicYield, periods, cashFlows, pvCoupons, pvFaceValue };
-  }, [couponRate, ytm, years, inputErrors]); // ✅ properly close useMemo here
+  }, [couponRate, ytm, years, inputErrors]);
 
   // IDs for validation aria-describedby
   const couponErrId = "couponError";
@@ -397,11 +397,11 @@ export default function App() {
           </div>
 
           {/* Input controls */}
-          <form className="flex flex-wrap items-end gap-x-6 gap-y-4" aria-describedby="inputHelp">
+          <div className="flex flex-wrap items-end gap-x-6 gap-y-4" aria-describedby="inputHelp">
             {/* Coupon Rate */}
             <div className="flex items-center gap-2">
               <label htmlFor="coupon" className="font-medium text-gray-700 text-sm">
-                Coupon rate <span className="text-red-500 ml-1">*</span>
+                Coupon rate <span className="text-gray-500 font-normal">(0 - 10)</span> <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="relative w-24">
                 <input
@@ -426,7 +426,7 @@ export default function App() {
             {/* Yield-to-Maturity */}
             <div className="flex items-center gap-2">
               <label htmlFor="ytm" className="font-medium text-gray-700 text-sm">
-                Yield-to-maturity <span className="text-red-500 ml-1">*</span>
+                Yield-to-maturity <span className="text-gray-500 font-normal">(0 - 10)</span> <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="relative w-24">
                 <input
@@ -451,7 +451,7 @@ export default function App() {
             {/* Years-to-Maturity */}
             <div className="flex items-center gap-2">
               <label htmlFor="years" className="font-medium text-gray-700 text-sm">
-                Years-to-maturity <span className="text-red-500 ml-1">*</span>
+                Years-to-maturity <span className="text-gray-500 font-normal">(1 - 5)</span> <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="w-24">
                 <input
@@ -473,7 +473,7 @@ export default function App() {
             )}
 
             <p id="inputHelp" className="sr-only">Enter values and the calculator updates results and the chart automatically.</p>
-          </form>
+          </div>
 
           <ValidationMessage errors={inputErrors} />
         </Card>
