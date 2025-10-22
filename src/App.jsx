@@ -52,7 +52,7 @@ function ValidationMessage({ errors }) {
   if (!errors || Object.keys(errors).length === 0) return null;
   return (
     <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg" role="alert">
-      <h3 className="text-red-800 font-semibold text-sm mb-2">Please correct the following:</h3>
+      <div className="text-red-800 font-semibold text-sm mb-2">Please correct the following:</div>
       <ul className="text-red-800 text-sm space-y-1">
         {Object.entries(errors).map(([field, error]) => (
           <li key={field}>• {error}</li>
@@ -199,6 +199,7 @@ function BondChart({ bondCalculations }) {
   if (!bondCalculations) return null;
   const [showLabels, setShowLabels] = useState(true);
   const [viewMode, setViewMode] = useState('chart');
+  const [viewAnnouncement, setViewAnnouncement] = useState('');
 
   useEffect(() => {
     const handleResize = () => setShowLabels(window.innerWidth > 860);
@@ -206,6 +207,13 @@ function BondChart({ bondCalculations }) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const handleViewChange = (newView) => {
+    setViewMode(newView);
+    setViewAnnouncement(newView === 'chart' ? 'Chart view active' : 'Table view active');
+    // Clear announcement after a moment so it can be triggered again
+    setTimeout(() => setViewAnnouncement(''), 100);
+  };
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -227,8 +235,13 @@ function BondChart({ bondCalculations }) {
 
   return (
     <>
+      {/* Screen reader announcement for view changes */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {viewAnnouncement}
+      </div>
+
       <div className="sr-only" id="bond-chart-desc">
-        <h3 id="bond-chart-title">Bond cash flows</h3>
+        <h5 id="bond-chart-title">Bond cash flows</h5>
         <p>Stacked bars display coupon payments and the final principal repayment over time. The initial purchase appears as a negative bar at period 0.</p>
       </div>
 
@@ -253,29 +266,45 @@ function BondChart({ bondCalculations }) {
           )}
 
           {/* Toggle Buttons - Always right-aligned */}
-          <div className="flex gap-2 ml-auto" role="group" aria-label="View mode">
+          <a href="#bond-data-table" className="sr-only focus:not-sr-only">
+          Skip to data table
+          </a>
+
+          <div className="flex gap-2 ml-auto" role="group" aria-label="Bond cash flow display options">
+
             <button
-              onClick={() => setViewMode('chart')}
-              className={`px-3 py-1 text-sm rounded transition-colors ${
-                viewMode === 'chart' 
-                  ? 'bg-blue-600 text-white font-semibold' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-              aria-pressed={viewMode === 'chart'}
-            >
-              Chart View
-            </button>
-            <button
-              onClick={() => setViewMode('table')}
-              className={`px-3 py-1 text-sm rounded transition-colors ${
-                viewMode === 'table' 
-                  ? 'bg-blue-600 text-white font-semibold' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-              aria-pressed={viewMode === 'table'}
-            >
-              Table View
-            </button>
+  onClick={() => handleViewChange('chart')}
+  aria-label="Show bond cash flows as a chart"
+  className={`px-3 py-1 text-sm rounded transition-colors ${
+    viewMode === 'chart' 
+      ? 'bg-blue-600 text-white font-semibold' 
+      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+  }`}
+  aria-pressed={viewMode === 'chart'}
+  aria-controls="bond-data-table"
+>
+  Show Chart
+</button>
+<button
+   onClick={() => {
+    handleViewChange('table');
+    setTimeout(() => {
+      const table = document.getElementById('bond-data-table');
+      if (table) table.focus();
+    }, 300);
+  }}
+  aria-label="Show bond cash flows as a table"
+  className={`px-3 py-1 text-sm rounded transition-colors ${
+    viewMode === 'table' 
+      ? 'bg-blue-600 text-white font-semibold' 
+      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+  }`}
+  aria-pressed={viewMode === 'table'}
+  aria-controls="bond-data-table"
+>
+  Show Table
+</button>
+
           </div>
         </div>
       </div>
@@ -288,12 +317,14 @@ function BondChart({ bondCalculations }) {
               <XAxis dataKey="yearLabel" label={{ value: "Years", position: "insideBottom", offset: -10 }} />
               <YAxis tickFormatter={(value) => formatCurrency(value)} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="principalPayment" name="Principal repayment" stackId="cashflow">
+              <Bar dataKey="principalPayment" name="Principal repayment" stroke="#333"
+  strokeWidth={0.5} stackId="cashflow">
                 {bondCalculations.cashFlows.map((entry, index) => (
                   <Cell key={`cell-principal-${index}`} fill={entry.principalPayment >= 0 ? COLORS.mint : COLORS.purchase} />
                 ))}
               </Bar>
-              <Bar dataKey="couponPayment" name="Coupon payment" fill={COLORS.coupon} stackId="cashflow">
+              <Bar dataKey="couponPayment" name="Coupon payment" fill={COLORS.coupon} stroke="#333"
+  strokeWidth={0.5} stackId="cashflow">
                 {showLabels && (
                   <LabelList
                     dataKey="totalCashFlow"
@@ -308,7 +339,13 @@ function BondChart({ bondCalculations }) {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse" aria-describedby="table-note">
+          <table 
+  id="bond-data-table" 
+  className="w-full text-sm border-collapse" 
+  aria-describedby="table-note"
+  tabIndex="-1"
+>
+
             <caption className="sr-only">
               Table showing bond cash flows: Initial purchase of {formatCurrency(bondCalculations.bondPrice)} at year 0, 
               followed by {bondCalculations.periods} semi-annual coupon payments of {formatCurrency(bondCalculations.periodicCoupon)} each, 
@@ -493,7 +530,7 @@ export default function App() {
           </div>
 
           <div className="space-y-4">
-            <p className="text-xs text-gray-600">* Required fields</p>
+            <p className="text-xs text-gray-600"><span className="text-red-500 ml-1">*</span> Required fields</p>
             
             <div className="flex flex-wrap items-end gap-x-6 gap-y-4" aria-describedby="inputHelp">
               <div className="flex items-center gap-2">
